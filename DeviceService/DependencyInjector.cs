@@ -4,8 +4,10 @@ namespace DeviceService;
 
 public static class DependencyInjector
 {
-    public static void InjectDependencies(this IServiceCollection services)
+    public static void InjectDependencies(this WebApplicationBuilder builder)
     {
-        services.InjectDeviceRepository();
+        DeviceRepositoryDependencyInjector.InjectDeviceRepository(
+            builder.Services,
+            builder.Configuration);
     }
 }
