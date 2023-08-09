@@ -1,5 +1,3 @@
-using DataLayer.Interfaces;
-
 namespace DeviceRepository.Interfaces;
 
 public interface IDeviceModel
