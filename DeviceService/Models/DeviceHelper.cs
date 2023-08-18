@@ -1,11 +1,11 @@
 using DeviceRepository.Models;
-using DeviceRepository.Interfaces;
+using DeviceRepository.Models.Interfaces;
 
 namespace DeviceService.Models;
 
 public static class DeviceHelper
 {
-    public static IDeviceModel ToEntity(this Device device)
+    public static IDeviceModel ToModel(this Device device)
     {
         return new DeviceModel
         {

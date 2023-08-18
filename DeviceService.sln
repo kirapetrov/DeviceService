@@ -3,10 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataLayer", "DataLayer", "{60BF04FB-BE9F-4644-91BB-AA73308849B8}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataLayer", "DataLayer\DataLayer.csproj", "{D07E3E6A-EAD4-4600-9B01-6F18A3081F62}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DeviceRepository", "DeviceRepository", "{F0BCCF2F-A112-4324-9AC3-F1DF32ECCD44}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceRepository", "DeviceRepository\DeviceRepository.csproj", "{963879C8-4849-437C-AB3D-3A1509C329DB}"
@@ -24,10 +20,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D07E3E6A-EAD4-4600-9B01-6F18A3081F62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D07E3E6A-EAD4-4600-9B01-6F18A3081F62}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D07E3E6A-EAD4-4600-9B01-6F18A3081F62}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D07E3E6A-EAD4-4600-9B01-6F18A3081F62}.Release|Any CPU.Build.0 = Release|Any CPU
 		{963879C8-4849-437C-AB3D-3A1509C329DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{963879C8-4849-437C-AB3D-3A1509C329DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{963879C8-4849-437C-AB3D-3A1509C329DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -38,7 +30,6 @@ Global
 		{FC18747B-1FF6-4F75-8EFA-FE91DEA9D78C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{D07E3E6A-EAD4-4600-9B01-6F18A3081F62} = {60BF04FB-BE9F-4644-91BB-AA73308849B8}
 		{963879C8-4849-437C-AB3D-3A1509C329DB} = {F0BCCF2F-A112-4324-9AC3-F1DF32ECCD44}
 		{FC18747B-1FF6-4F75-8EFA-FE91DEA9D78C} = {FCD0C3C0-0220-4969-958B-61C99286D769}
 	EndGlobalSection

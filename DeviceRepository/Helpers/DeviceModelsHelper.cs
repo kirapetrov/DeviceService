@@ -1,5 +1,5 @@
 using DeviceRepository.Entities;
-using DeviceRepository.Interfaces;
+using DeviceRepository.Models.Interfaces;
 using DeviceRepository.Models;
 
 namespace DeviceRepository.Helpers;

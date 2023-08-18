@@ -1,5 +1,3 @@
-using DataLayer.Interfaces;
-
 namespace DeviceRepository.Entities;
 
 internal class Device : RepositoryEntity

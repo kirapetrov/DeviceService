@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using DeviceRepository.Interfaces;
+using DeviceRepository.Repositories.Interfaces;
 using DeviceService.Models;
 
 namespace DeviceService.Controllers;
@@ -37,7 +37,7 @@ public class DeviceController : ControllerBase
     {
         //TODO need rework method
         var result = await _deviceRepository
-            .AddAsync(device.ToEntity())
+            .AddAsync(device.ToModel())
             .ConfigureAwait(false);
 
         var newDevice = new Device(
@@ -54,7 +54,7 @@ public class DeviceController : ControllerBase
     public async Task<IActionResult> PatchDevice(long identifier, Device device)
     {
         var result = await _deviceRepository
-            .UpdateAsync(identifier, device.ToEntity())
+            .UpdateAsync(identifier, device.ToModel())
             .ConfigureAwait(false);
 
         return result ? NoContent() : NotFound();
