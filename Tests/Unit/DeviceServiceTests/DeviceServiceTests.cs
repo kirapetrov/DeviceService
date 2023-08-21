@@ -1,10 +1,11 @@
 using Moq;
 using Microsoft.AspNetCore.Mvc;
 using DeviceServiceTests.Mocks;
-using DeviceRepository.Interfaces;
 using DeviceService.Controllers;
 using DeviceServiceTests.Helpers;
 using DeviceService.Models;
+using DeviceRepository.Models.Interfaces;
+using DeviceRepository.Repositories.Interfaces;
 
 namespace DeviceServiceTests;
 

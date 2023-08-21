@@ -1,4 +1,4 @@
-using DeviceRepository.Interfaces;
+using DeviceRepository.Models.Interfaces;
 
 namespace DeviceServiceTests.Mocks;
 
