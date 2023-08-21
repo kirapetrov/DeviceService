@@ -2,6 +2,7 @@ using DeviceRepository.Repositories.Interfaces;
 using DeviceRepository.Models.Interfaces;
 using DeviceRepository.Helpers;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.CompilerServices;
 
 namespace DeviceRepository.Repositories;
 
@@ -27,7 +28,7 @@ internal class DeviceRepository : IDeviceRepository
     {
         var device = await deviceContext
             .Devices
-            .FirstOrDefaultAsync(x => x.Id == identifier)
+            .SingleAsync(x => x.Id == identifier)
             .ConfigureAwait(false);
         return device?.GetModel();
     }
