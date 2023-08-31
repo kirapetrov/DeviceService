@@ -26,11 +26,9 @@ public class DeviceRepositoryTests
 
     private DeviceContext GetContextMock(IEnumerable<Device> devices)
     {
-        var deviceContext = new DeviceContext();
-        deviceContext.Devices = devices
-            .AsQueryable()
-            .BuildMockDbSet()
-            .Object;
-        return deviceContext;
+        return new DeviceContext
+        {
+            Devices = devices.AsQueryable().BuildMockDbSet().Object
+        };
     }
 }
