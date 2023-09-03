@@ -21,7 +21,7 @@ public class DeviceServiceTests
         // Arrange
         var mockRepository = new Mock<IDeviceRepository>();
         mockRepository
-            .Setup(x => x.GetAsync())
+            .Setup(x => x.GetAsync(CancellationToken.None))
             .Returns(Task.FromResult<IEnumerable<IDeviceModel>>(expectedCollection));
 
         var controller = new DeviceController(mockRepository.Object);
@@ -38,7 +38,8 @@ public class DeviceServiceTests
         Assert.Equal(expectedCollection.Length, actualCollection.Length);
 
         var index = 0;
-        while(index < expectedCollection.Length){
+        while (index < expectedCollection.Length)
+        {
             var expectedItem = expectedCollection[index];
             var actualItem = actualCollection[index];
 
@@ -54,7 +55,7 @@ public class DeviceServiceTests
         // Arrange
         var mockRepository = new Mock<IDeviceRepository>();
         mockRepository
-            .Setup(x => x.GetAsync())
+            .Setup(x => x.GetAsync(CancellationToken.None))
             .Returns(Task.FromResult(Enumerable.Empty<IDeviceModel>()));
 
         var controller = new DeviceController(mockRepository.Object);
@@ -78,7 +79,7 @@ public class DeviceServiceTests
         // Arrange
         var mockRepository = new Mock<IDeviceRepository>();
         mockRepository
-            .Setup(x => x.GetAsync(expectedIdentifier))
+            .Setup(x => x.GetAsync(expectedIdentifier, CancellationToken.None))
             .Returns(Task.FromResult<IDeviceModel?>(expectedDevice));
 
         var controller = new DeviceController(mockRepository.Object);
@@ -119,7 +120,7 @@ public class DeviceServiceTests
         // Arrange
         var mockRepository = new Mock<IDeviceRepository>();
         mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<IDeviceModel>()))
+            .Setup(x => x.AddAsync(It.IsAny<IDeviceModel>(), CancellationToken.None))
             .Returns(Task.FromResult(expectedIdentifier));
         var controller = new DeviceController(mockRepository.Object);
 
@@ -159,7 +160,7 @@ public class DeviceServiceTests
         // Arrange
         var mockRepository = new Mock<IDeviceRepository>();
         mockRepository
-            .Setup(x => x.DeleteAsync(expectedIdentifier))
+            .Setup(x => x.DeleteAsync(expectedIdentifier, CancellationToken.None))
             .Returns(Task.FromResult(true));
         var controller = new DeviceController(mockRepository.Object);
 
@@ -180,7 +181,7 @@ public class DeviceServiceTests
         // Arrange
         var mockRepository = new Mock<IDeviceRepository>();
         mockRepository
-            .Setup(x => x.DeleteAsync(expectedIdentifier))
+            .Setup(x => x.DeleteAsync(expectedIdentifier, CancellationToken.None))
             .Returns(Task.FromResult(false));
         var controller = new DeviceController(mockRepository.Object);
 
