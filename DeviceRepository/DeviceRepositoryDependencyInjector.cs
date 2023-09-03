@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using DeviceRepository.Repositories;
 using DeviceRepository.Repositories.Interfaces;
 
 using System.Runtime.CompilerServices;
