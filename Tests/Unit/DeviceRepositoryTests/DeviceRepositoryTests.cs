@@ -32,7 +32,7 @@ public class DeviceRepositoryTests
         var deviceContext = GetContextMock(Enumerable.Empty<Device>());
         var sut = new DeviceRepository.Repositories.DeviceRepository(deviceContext);
         var actual = await sut.UpdateAsync(1, null).ConfigureAwait(false);
-        Assert.Equal(false, actual);
+        Assert.False(actual);
     }
 
     [Fact]
@@ -42,7 +42,7 @@ public class DeviceRepositoryTests
         var deviceModel = new DeviceModel();
         var sut = new DeviceRepository.Repositories.DeviceRepository(deviceContext);
         var actual = await sut.UpdateAsync(1, deviceModel).ConfigureAwait(false);
-        Assert.Equal(false, actual);
+        Assert.False(actual);
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class DeviceRepositoryTests
         var sut = new DeviceRepository.Repositories.DeviceRepository(deviceContext);
         var deviceModel = new DeviceModel();
         var actual = await sut.UpdateAsync(1, deviceModel).ConfigureAwait(false);
-        Assert.Equal(true, actual);
+        Assert.True(actual);
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public class DeviceRepositoryTests
         var deviceContext = GetContextMock(Enumerable.Empty<Device>());
         var sut = new DeviceRepository.Repositories.DeviceRepository(deviceContext);
         var actual = await sut.DeleteAsync(1).ConfigureAwait(false);
-        Assert.Equal(false, actual);
+        Assert.False(actual);
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class DeviceRepositoryTests
         var deviceContext = GetContextMock(new List<Device> { new Device { Id = 1 } });
         var sut = new DeviceRepository.Repositories.DeviceRepository(deviceContext);
         var actual = await sut.DeleteAsync(1).ConfigureAwait(false);
-        Assert.Equal(true, actual);
+        Assert.True(true);
     }
 
     private DeviceContext GetContextMock(IEnumerable<Device> devices)
