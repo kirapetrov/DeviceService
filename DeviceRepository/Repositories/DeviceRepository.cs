@@ -2,6 +2,7 @@ using DeviceRepository.Repositories.Interfaces;
 using DeviceRepository.Models.Interfaces;
 using DeviceRepository.Helpers;
 using Microsoft.EntityFrameworkCore;
+using DeviceRepository.Common.Page;
 
 namespace DeviceRepository.Repositories;
 
@@ -14,11 +15,15 @@ internal class DeviceRepository : IDeviceRepository
         this.dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<IDeviceModel>> GetAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<IDeviceModel>> GetAsync(
+        PageInfo pageInfo,
+        CancellationToken cancellationToken = default)
     {
         return await dbContext
             .Devices
             .Select(x => x.GetModel())
+            .GetPaged(pageInfo)
+            .Results
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
     }

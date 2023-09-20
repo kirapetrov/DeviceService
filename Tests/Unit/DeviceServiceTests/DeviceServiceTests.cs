@@ -4,6 +4,7 @@ using DeviceServiceTests.Mocks;
 using DeviceService.Controllers;
 using DeviceServiceTests.Helpers;
 using DeviceService.Models;
+using DeviceRepository.Common.Page;
 using DeviceRepository.Models.Interfaces;
 using DeviceRepository.Repositories.Interfaces;
 
@@ -14,6 +15,7 @@ public class DeviceServiceTests
     [Fact]
     public async void GetDevices_GetMockDevices_DeviceCollectionsSame()
     {
+        var pageInfo = new PageInfo();
         var expectedCollection = new[] {
             new DeviceModelMock { Identifier = 1 },
             new DeviceModelMock { Identifier = 2 }};
@@ -21,13 +23,13 @@ public class DeviceServiceTests
         // Arrange
         var mockRepository = new Mock<IDeviceRepository>();
         mockRepository
-            .Setup(x => x.GetAsync(CancellationToken.None))
+            .Setup(x => x.GetAsync(pageInfo, CancellationToken.None))
             .Returns(Task.FromResult<IEnumerable<IDeviceModel>>(expectedCollection));
 
         var controller = new DeviceController(mockRepository.Object);
 
         // Act
-        var actionResult = await controller.GetDevices().ConfigureAwait(false);
+        var actionResult = await controller.GetDevices(pageInfo).ConfigureAwait(false);
         var actualCollection = actionResult
             .GetResult<OkObjectResult, IEnumerable<Device>>()?
             .ToArray();
@@ -52,16 +54,17 @@ public class DeviceServiceTests
     [Fact]
     public async void GetDevices_GetMockDevices_DeviceCollectionEmpty()
     {
+        var pageInfo = new PageInfo();
         // Arrange
         var mockRepository = new Mock<IDeviceRepository>();
         mockRepository
-            .Setup(x => x.GetAsync(CancellationToken.None))
+            .Setup(x => x.GetAsync(pageInfo, CancellationToken.None))
             .Returns(Task.FromResult(Enumerable.Empty<IDeviceModel>()));
 
         var controller = new DeviceController(mockRepository.Object);
 
         // Act
-        var actionResult = await controller.GetDevices().ConfigureAwait(false);
+        var actionResult = await controller.GetDevices(pageInfo).ConfigureAwait(false);
         var actionValue = actionResult.GetResult<OkObjectResult, IEnumerable<Device>>();
 
         // Assert
