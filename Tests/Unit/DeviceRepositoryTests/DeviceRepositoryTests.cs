@@ -1,39 +1,20 @@
-using Moq;
 using DeviceRepository.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
-using System.Linq.Expressions;
-using System.Data.Entity.Infrastructure;
-using DeviceRepository;
+using DeviceRepository.Models;
+using DeviceRepository.Repositories;
+using MockQueryable.Moq;
+using Moq;
 
 namespace DeviceRepositoryTests;
 
 public class DeviceRepositoryTests
 {
+    private readonly Device deviceStub = new Device { Id = 1 };
+
     [Fact]
     public async void GetAsync_GetNotExistsModel_IsNull()
     {
-        var data = Enumerable.Empty<Device>().AsQueryable();
-
-        var mockSet = new Mock<DbSet<Device>>();
-        mockSet.As<IDbAsyncEnumerable<Device>>()
-            .Setup(m => m.GetAsyncEnumerator())
-            .Returns(new TestDbAsyncEnumerator<Device>(data.GetEnumerator()));
-
-        mockSet.As<IQueryable<Device>>()
-            .Setup(m => m.Provider)
-            .Returns(new TestDbAsyncQueryProvider<Device>(data.Provider));
-
-        mockSet.As<IQueryable<Device>>().Setup(m => m.Expression).Returns(data.Expression);
-        mockSet.As<IQueryable<Device>>().Setup(m => m.ElementType).Returns(data.ElementType);
-        mockSet.As<IQueryable<Device>>().Setup(m => m.GetEnumerator()).Returns(() => data.GetEnumerator());
-
-        var mockContext = new Mock<DeviceContext>();
-        mockContext
-            .Setup(c => c.Devices)
-            .Returns(mockSet.Object);
-
-        var sut = new DeviceRepository.Repositories.DeviceRepository(mockContext.Object);
+        var deviceContextMock = GetContextMock();
+        var sut = new DeviceRepository.Repositories.DeviceRepository(deviceContextMock.Object);
         var actual = await sut.GetAsync(1).ConfigureAwait(false);
         Assert.Null(actual);
     }
@@ -41,129 +22,108 @@ public class DeviceRepositoryTests
     [Fact]
     public async void GetAsync_GetExistingModel_IsNotNull()
     {
-        var data = new List<Device> { new Device { Id = 1 } }.AsQueryable();
-
-        var mockSet = new Mock<DbSet<Device>>();
-        mockSet.As<IDbAsyncEnumerable<Device>>()
-            .Setup(m => m.GetAsyncEnumerator())
-            .Returns(new TestDbAsyncEnumerator<Device>(data.GetEnumerator()));
-
-        mockSet.As<IQueryable<Device>>()
-            .Setup(m => m.Provider)
-            .Returns(new TestDbAsyncQueryProvider<Device>(data.Provider));
-
-        mockSet.As<IQueryable<Device>>().Setup(m => m.Expression).Returns(data.Expression);
-        mockSet.As<IQueryable<Device>>().Setup(m => m.ElementType).Returns(data.ElementType);
-        mockSet.As<IQueryable<Device>>().Setup(m => m.GetEnumerator()).Returns(() => data.GetEnumerator());
-
-        var mockContext = new Mock<DeviceContext>();
-        mockContext
-            .Setup(c => c.Devices)
-            .Returns(mockSet.Object);
-
-        var sut = new DeviceRepository.Repositories.DeviceRepository(mockContext.Object);
+        var deviceContextMock = GetContextMock(deviceStub);
+        var sut = new DeviceRepository.Repositories.DeviceRepository(deviceContextMock.Object);
         var actual = await sut.GetAsync(1).ConfigureAwait(false);
         Assert.NotNull(actual);
     }
-}
 
-internal class TestDbAsyncQueryProvider<TEntity> : IDbAsyncQueryProvider, IAsyncQueryProvider
-{
-    private readonly IQueryProvider _inner;
-
-    internal TestDbAsyncQueryProvider(IQueryProvider inner)
+    [Fact]
+    public async void AddAsync_AddNullModel_EqualFlse()
     {
-        _inner = inner;
+        var deviceContextMock = GetContextMock();
+        var sut = new DeviceRepository.Repositories.DeviceRepository(deviceContextMock.Object);
+        var actual = await sut.AddAsync(null).ConfigureAwait(false);
+        Assert.Equal(-1, actual);
     }
 
-    public IQueryable CreateQuery(Expression expression)
+    [Fact (Skip = "How to mock EntityEntry")]
+    public async void AddAsync_AddNotNullModel_EqualTrue()
     {
-        return new TestDbAsyncEnumerable<TEntity>(expression);
+        var deviceContextMock = GetContextMock();
+        var sut = new DeviceRepository.Repositories.DeviceRepository(deviceContextMock.Object);
+        var actual = await sut.AddAsync(new DeviceModel()).ConfigureAwait(false);
+        Assert.Equal(1, actual);
     }
 
-    public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
+    [Fact]
+    public async void UpdateAsync_UpdateNullModel_EqualFlse()
     {
-        return new TestDbAsyncEnumerable<TElement>(expression);
+        var deviceContextMock = GetContextMock();
+        var sut = new DeviceRepository.Repositories.DeviceRepository(deviceContextMock.Object);
+        var actual = await sut.UpdateAsync(1, null).ConfigureAwait(false);
+        Assert.False(actual);
     }
 
-    public object Execute(Expression expression)
+    [Fact]
+    public async void UpdateAsync_UpdateNotExistingModel_EqualFlse()
     {
-        return _inner.Execute(expression);
+        var deviceContextMock = GetContextMock();
+        var deviceModel = new DeviceModel();
+        var sut = new DeviceRepository.Repositories.DeviceRepository(deviceContextMock.Object);
+        var actual = await sut.UpdateAsync(1, deviceModel).ConfigureAwait(false);
+        Assert.False(actual);
     }
 
-    public TResult Execute<TResult>(Expression expression)
+    [Fact]
+    public async void UpdateAsync_UpdateExistingModel_EqualTrue()
     {
-        return _inner.Execute<TResult>(expression);
+        var deviceContextMock = GetContextMock(deviceStub);
+        var sut = new DeviceRepository.Repositories.DeviceRepository(deviceContextMock.Object);
+        var deviceModel = new DeviceModel();
+        var actual = await sut.UpdateAsync(1, deviceModel).ConfigureAwait(false);
+        Assert.True(actual);
     }
 
-    public Task<object> ExecuteAsync(Expression expression, CancellationToken cancellationToken)
+    [Fact]
+    public async void DeleteAsync_DeleteNotExistingModel_EqualFlse()
     {
-        return Task.FromResult(Execute(expression));
+        var deviceContextMock = GetContextMock();
+        var sut = new DeviceRepository.Repositories.DeviceRepository(deviceContextMock.Object);
+        var actual = await sut.DeleteAsync(1).ConfigureAwait(false);
+        Assert.False(actual);
     }
 
-    public Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
+    [Fact]
+    public async void DeleteAsync_DeleteExistingModel_EqualTrue()
     {
-        return Task.FromResult(Execute<TResult>(expression));
+        var deviceContextMock = GetContextMock(deviceStub);
+        var sut = new DeviceRepository.Repositories.DeviceRepository(deviceContextMock.Object);
+        var actual = await sut.DeleteAsync(1).ConfigureAwait(false);
+
+        Assert.True(actual);
     }
 
-    TResult IAsyncQueryProvider.ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
+    private Mock<DeviceContext> GetContextMock(Device? device = null)
     {
-        return Execute<TResult>(expression);
-    }
-}
+        var devices = device == null ?
+            Enumerable.Empty<Device>() :
+            new List<Device> { device };
 
-internal class TestDbAsyncEnumerable<T> : EnumerableQuery<T>, IDbAsyncEnumerable<T>, IQueryable<T>
-{
-    public TestDbAsyncEnumerable(IEnumerable<T> enumerable)
-        : base(enumerable)
-    { }
+        var deviceContextMock = new Mock<DeviceContext>();
+        deviceContextMock
+            .SetupGet(x => x.Devices)
+            .Returns(devices.AsQueryable().BuildMockDbSet().Object);
 
-    public TestDbAsyncEnumerable(Expression expression)
-        : base(expression)
-    { }
+        deviceContextMock
+            .Setup(x => x.SaveChangesAsync(CancellationToken.None));
 
-    public IDbAsyncEnumerator<T> GetAsyncEnumerator()
-    {
-        return new TestDbAsyncEnumerator<T>(this.AsEnumerable().GetEnumerator());
-    }
+        if (device != null)
+        {
+            //TODO mock EntityEntry
+            // var entryMock = new Mock<InternalEntityEntry>();
+            // entryMock
+            //     .SetupGet(x => x.Entity)
+            //     .Returns(device);
 
-    IDbAsyncEnumerator IDbAsyncEnumerable.GetAsyncEnumerator()
-    {
-        return GetAsyncEnumerator();
-    }
+            // deviceContextMock
+            //     .Setup(x => x.Add(It.IsAny<object>()))
+            //     .Returns(new EntityEntry(entryMock.Object));
+        }
 
-    IQueryProvider IQueryable.Provider
-    {
-        get { return new TestDbAsyncQueryProvider<T>(this); }
-    }
-}
+        deviceContextMock
+                .Setup(x => x.Remove(It.IsAny<object>()));
 
-internal class TestDbAsyncEnumerator<T> : IDbAsyncEnumerator<T>
-{
-    private readonly IEnumerator<T> _inner;
-
-    public TestDbAsyncEnumerator(IEnumerator<T> inner)
-    {
-        _inner = inner;
-    }
-
-    public void Dispose()
-    {
-        _inner.Dispose();
-    }
-
-    public Task<bool> MoveNextAsync(CancellationToken cancellationToken)
-    {
-        return Task.FromResult(_inner.MoveNext());
-    }
-
-    public T Current
-    {
-        get { return _inner.Current; }
-    }
-
-    object IDbAsyncEnumerator.Current
-    {
-        get { return Current; }
+        return deviceContextMock;
     }
 }

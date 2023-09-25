@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using DeviceRepository.Repositories.Interfaces;
 using DeviceService.Models;
+using DeviceRepository.Common.Page;
 
 namespace DeviceService.Controllers;
 
@@ -16,9 +17,10 @@ public class DeviceController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Device>>> GetDevices()
+    public async Task<ActionResult<IEnumerable<Device>>> GetDevices(
+        [FromQuery] PageInfo pageInfo)    
     {
-        var result = await _deviceRepository.GetAsync().ConfigureAwait(false);
+        var result = await _deviceRepository.GetAsync(pageInfo).ConfigureAwait(false);
         return Ok(result.Select(DeviceHelper.GetDevice).ToArray());
     }
 

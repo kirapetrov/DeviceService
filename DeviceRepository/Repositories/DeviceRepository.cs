@@ -2,38 +2,44 @@ using DeviceRepository.Repositories.Interfaces;
 using DeviceRepository.Models.Interfaces;
 using DeviceRepository.Helpers;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.CompilerServices;
+using DeviceRepository.Common.Page;
 
 namespace DeviceRepository.Repositories;
 
 internal class DeviceRepository : IDeviceRepository
 {
-    private readonly DeviceContext deviceContext;
+    private readonly DeviceContext dbContext;
 
-    public DeviceRepository(DeviceContext deviceContext)
+    public DeviceRepository(DeviceContext dbContext)
     {
-        this.deviceContext = deviceContext;
+        this.dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<IDeviceModel>> GetAsync()
+    public async Task<IEnumerable<IDeviceModel>> GetAsync(
+        PageInfo pageInfo,
+        CancellationToken cancellationToken = default)
     {
-        return await deviceContext
+        return await dbContext
             .Devices
             .Select(x => x.GetModel())
-            .ToArrayAsync()
+            .GetPaged(pageInfo)
+            .Results
+            .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
     }
 
-    public async Task<IDeviceModel?> GetAsync(long identifier)
+    public async Task<IDeviceModel?> GetAsync(long identifier, CancellationToken cancellationToken = default)
     {
-        var device = await deviceContext
+        var device = await dbContext
             .Devices
-            .SingleAsync(x => x.Id == identifier)
+            .FirstOrDefaultAsync(
+                x => x.Id == identifier,
+                cancellationToken)
             .ConfigureAwait(false);
         return device?.GetModel();
     }
 
-    public async Task<long> AddAsync(IDeviceModel deviceModel)
+    public async Task<long> AddAsync(IDeviceModel deviceModel, CancellationToken cancellationToken = default)
     {
         var deviceEntity = deviceModel?.GetEntity();
         if (deviceEntity is null)
@@ -41,24 +47,30 @@ internal class DeviceRepository : IDeviceRepository
             return -1;
         }
 
-        var newDevice = await deviceContext
+        var newDevice = await dbContext
             .Devices
-            .AddAsync(deviceEntity)
+            .AddAsync(deviceEntity, cancellationToken)
             .ConfigureAwait(false);
-        await deviceContext.SaveChangesAsync().ConfigureAwait(false);
+
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return newDevice.Entity.Id;
     }
 
-    public async Task<bool> UpdateAsync(long identifier, IDeviceModel deviceModel)
+    public async Task<bool> UpdateAsync(
+        long identifier,
+        IDeviceModel deviceModel,
+        CancellationToken cancellationToken = default)
     {
         if (deviceModel is null)
         {
             return false;
         }
 
-        var device = await deviceContext
+        var device = await dbContext
             .Devices
-            .FirstOrDefaultAsync(x => x.Id == identifier)
+            .FirstOrDefaultAsync(
+                x => x.Id == identifier,
+                cancellationToken)
             .ConfigureAwait(false);
 
         if (device is null)
@@ -72,15 +84,17 @@ internal class DeviceRepository : IDeviceRepository
         if (!string.IsNullOrWhiteSpace(deviceModel.IpAddress))
             device.IpAddress = deviceModel.IpAddress;
 
-        await deviceContext.SaveChangesAsync().ConfigureAwait(false);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return true;
     }
 
-    public async Task<bool> DeleteAsync(long identifier)
-    {        
-        var device = await deviceContext
+    public async Task<bool> DeleteAsync(long identifier, CancellationToken cancellationToken = default)
+    {
+        var device = await dbContext
             .Devices
-            .FirstOrDefaultAsync(x => x.Id == identifier)
+            .FirstOrDefaultAsync(
+                x => x.Id == identifier,
+                cancellationToken)
             .ConfigureAwait(false);
 
         if (device is null)
@@ -88,8 +102,8 @@ internal class DeviceRepository : IDeviceRepository
             return false;
         }
 
-        deviceContext.Remove(device);
-        await deviceContext.SaveChangesAsync().ConfigureAwait(false);
+        dbContext.Remove(device);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return true;
     }
 }
