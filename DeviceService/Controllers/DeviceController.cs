@@ -17,11 +17,18 @@ public class DeviceController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Device>>> GetDevices(
+    public async Task<ActionResult<PagedResult<Device>>> GetDevices(
         [FromQuery] PageInfo pageInfo)    
     {
         var result = await _deviceRepository.GetAsync(pageInfo).ConfigureAwait(false);
-        return Ok(result.Select(DeviceHelper.GetDevice).ToArray());
+        var deviceCollection = result.Results.Select(DeviceHelper.ToDevice).ToArray();
+        return Ok(new PagedResult<Device>(deviceCollection)
+            {
+                CurrentPage = result.CurrentPage,
+                PageSize = result.PageSize,
+                RowCount = result.RowCount,
+                PageCount = result.PageCount                
+            });
     }
 
     [HttpGet("{identifier}")]
@@ -31,7 +38,7 @@ public class DeviceController : ControllerBase
             .GetAsync(identifier)
             .ConfigureAwait(false);
 
-        return result != null ? Ok(result.GetDevice()) : NotFound();
+        return result != null ? Ok(result.ToDevice()) : NotFound();
     }
 
     [HttpPost]

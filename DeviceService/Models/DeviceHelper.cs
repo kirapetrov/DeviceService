@@ -15,7 +15,7 @@ public static class DeviceHelper
         };
     }
 
-    public static Device GetDevice(this IDeviceModel deviceModel)
+    public static Device ToDevice(this IDeviceModel deviceModel)
     {
         return new Device(
             deviceModel.Identifier,

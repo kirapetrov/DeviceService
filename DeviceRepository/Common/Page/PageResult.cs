@@ -2,9 +2,9 @@ using DeviceRepository.Common.Page;
 
 public class PagedResult<T> : PagedResultBase where T : class
 {
-    public readonly IQueryable<T> Results;
+    public readonly IReadOnlyCollection<T> Results;
 
-    public PagedResult(IQueryable<T> results)
+    public PagedResult(IReadOnlyCollection<T> results)
     {
         Results = results;
     }

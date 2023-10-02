@@ -15,17 +15,14 @@ internal class DeviceRepository : IDeviceRepository
         this.dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<IDeviceModel>> GetAsync(
+    public Task<PagedResult<IDeviceModel>> GetAsync(
         PageInfo pageInfo,
         CancellationToken cancellationToken = default)
     {
-        return await dbContext
+        return dbContext
             .Devices
             .Select(x => x.GetModel())
-            .GetPaged(pageInfo)
-            .Results
-            .ToArrayAsync(cancellationToken)
-            .ConfigureAwait(false);
+            .GetPaged(pageInfo);
     }
 
     public async Task<IDeviceModel?> GetAsync(long identifier, CancellationToken cancellationToken = default)

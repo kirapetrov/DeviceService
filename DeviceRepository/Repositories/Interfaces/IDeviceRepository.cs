@@ -5,7 +5,7 @@ namespace DeviceRepository.Repositories.Interfaces;
 
 public interface IDeviceRepository
 {
-    Task<IEnumerable<IDeviceModel>> GetAsync(
+    Task<PagedResult<IDeviceModel>> GetAsync(
         PageInfo pageInfo,
         CancellationToken cancellationToken = default);
     Task<IDeviceModel?> GetAsync(long identifier, CancellationToken cancellationToken = default);
