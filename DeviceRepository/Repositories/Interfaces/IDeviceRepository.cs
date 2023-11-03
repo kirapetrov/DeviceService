@@ -1,12 +1,12 @@
 using DeviceRepository.Models.Interfaces;
-using DeviceRepository.Common.Page;
+using DeviceRepository.Common;
 
 namespace DeviceRepository.Repositories.Interfaces;
 
 public interface IDeviceRepository
 {
     Task<PagedResult<IDeviceModel>> GetAsync(
-        PageInfo pageInfo,
+        QueryParameters? queryParameters,
         CancellationToken cancellationToken = default);
     Task<IDeviceModel?> GetAsync(long identifier, CancellationToken cancellationToken = default);
 

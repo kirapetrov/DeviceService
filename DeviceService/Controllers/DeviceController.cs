@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using DeviceRepository.Repositories.Interfaces;
 using DeviceService.Models;
-using DeviceRepository.Common.Page;
+using DeviceRepository.Common;
 
 namespace DeviceService.Controllers;
 
@@ -18,17 +18,19 @@ public class DeviceController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<PagedResult<Device>>> GetDevices(
-        [FromQuery] PageInfo pageInfo)    
-    {
-        var result = await _deviceRepository.GetAsync(pageInfo).ConfigureAwait(false);
+        QueryParameters? queryParameters)
+    {        
+        var result = await _deviceRepository
+            .GetAsync(queryParameters)
+            .ConfigureAwait(false);
         var deviceCollection = result.Results.Select(DeviceHelper.ToDevice).ToArray();
         return Ok(new PagedResult<Device>(deviceCollection)
-            {
-                CurrentPage = result.CurrentPage,
-                PageSize = result.PageSize,
-                RowCount = result.RowCount,
-                PageCount = result.PageCount                
-            });
+        {
+            CurrentPage = result.CurrentPage,
+            PageSize = result.PageSize,
+            TotalCount = result.TotalCount,
+            PageCount = result.PageCount
+        });
     }
 
     [HttpGet("{identifier}")]

@@ -2,7 +2,10 @@ using DeviceRepository.Repositories.Interfaces;
 using DeviceRepository.Models.Interfaces;
 using DeviceRepository.Helpers;
 using Microsoft.EntityFrameworkCore;
+using DeviceRepository.Common;
 using DeviceRepository.Common.Page;
+using DeviceRepository.Common.Order;
+using DeviceRepository.Common.Search;
 
 namespace DeviceRepository.Repositories;
 
@@ -15,20 +18,42 @@ internal class DeviceRepository : IDeviceRepository
         this.dbContext = dbContext;
     }
 
-    public Task<PagedResult<IDeviceModel>> GetAsync(
-        PageInfo pageInfo,
+    public async Task<PagedResult<IDeviceModel>> GetAsync(
+        QueryParameters? queryParameters,
         CancellationToken cancellationToken = default)
     {
-        return dbContext
-            .Devices
+        var orderInfo = queryParameters?.OrderInfo ?? new OrderInfo(nameof(IDeviceModel.Name));
+        var deviceQuery = dbContext.Devices!
+            .AsNoTracking()
+            .AppendOrder(orderInfo)
+            .AppendParameters(
+                queryParameters?.SearchParameters ?? Enumerable.Empty<SearchParameter>().ToArray());
+
+        var devicesCount = await deviceQuery
+            .CountAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var pageInfo = queryParameters?.PageInfo ?? new PageInfo();
+        var devices = await deviceQuery
+            .AppendPage(pageInfo)
             .Select(x => x.GetModel())
-            .GetPaged(pageInfo);
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return new PagedResult<IDeviceModel>(devices)
+        {
+            CurrentPage = pageInfo.Page,
+            PageSize = pageInfo.Size,
+            TotalCount = devicesCount,
+            PageCount = (ushort)Math.Ceiling((double)devicesCount / pageInfo.Size)
+        };
     }
 
     public async Task<IDeviceModel?> GetAsync(long identifier, CancellationToken cancellationToken = default)
     {
         var device = await dbContext
-            .Devices
+            .Devices!
+            .AsNoTracking()
             .FirstOrDefaultAsync(
                 x => x.Id == identifier,
                 cancellationToken)
@@ -45,7 +70,7 @@ internal class DeviceRepository : IDeviceRepository
         }
 
         var newDevice = await dbContext
-            .Devices
+            .Devices!
             .AddAsync(deviceEntity, cancellationToken)
             .ConfigureAwait(false);
 
@@ -64,7 +89,8 @@ internal class DeviceRepository : IDeviceRepository
         }
 
         var device = await dbContext
-            .Devices
+            .Devices!
+            .AsNoTracking()
             .FirstOrDefaultAsync(
                 x => x.Id == identifier,
                 cancellationToken)
@@ -88,7 +114,8 @@ internal class DeviceRepository : IDeviceRepository
     public async Task<bool> DeleteAsync(long identifier, CancellationToken cancellationToken = default)
     {
         var device = await dbContext
-            .Devices
+            .Devices!
+            .AsNoTracking()
             .FirstOrDefaultAsync(
                 x => x.Id == identifier,
                 cancellationToken)

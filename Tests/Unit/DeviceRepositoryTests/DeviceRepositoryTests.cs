@@ -8,7 +8,7 @@ namespace DeviceRepositoryTests;
 
 public class DeviceRepositoryTests
 {
-    private readonly Device deviceStub = new Device { Id = 1 };
+    private readonly Device deviceStub = new() { Id = 1 };
 
     [Fact]
     public async void GetAsync_GetNotExistsModel_IsNull()

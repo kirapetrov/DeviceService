@@ -7,6 +7,7 @@ using DeviceService.Models;
 using DeviceRepository.Common.Page;
 using DeviceRepository.Models.Interfaces;
 using DeviceRepository.Repositories.Interfaces;
+using DeviceRepository.Common;
 
 namespace DeviceServiceTests;
 
@@ -15,7 +16,7 @@ public class DeviceServiceTests
     [Fact]
     public async void GetDevices_GetMockDevices_DeviceCollectionsSame()
     {
-        var pageInfo = new PageInfo();
+        var queryParameters = new QueryParameters();
         var expectedCollection = new[] {
             new DeviceModelMock { Identifier = 1 },
             new DeviceModelMock { Identifier = 2 }};
@@ -23,30 +24,26 @@ public class DeviceServiceTests
         // Arrange
         var mockRepository = new Mock<IDeviceRepository>();
         mockRepository
-            .Setup(x => x.GetAsync(pageInfo, CancellationToken.None))
-            .Returns(Task.FromResult<IEnumerable<IDeviceModel>>(expectedCollection));
+            .Setup(x => x.GetAsync(queryParameters, CancellationToken.None))
+            .Returns(GetPagedResult(expectedCollection, 1, 1));
 
         var controller = new DeviceController(mockRepository.Object);
 
         // Act
-        var actionResult = await controller.GetDevices(pageInfo).ConfigureAwait(false);
+        var actionResult = await controller.GetDevices(queryParameters).ConfigureAwait(false);
         var actualCollection = actionResult
-            .GetResult<OkObjectResult, IEnumerable<Device>>()?
-            .ToArray();
+            .GetResult<OkObjectResult, PagedResult<Device>>();
 
         // Assert
         Assert.IsType<OkObjectResult>(actionResult?.Result);
         Assert.NotNull(actualCollection);
-        Assert.Equal(expectedCollection.Length, actualCollection.Length);
+        Assert.Equal(expectedCollection.Length, actualCollection.TotalCount);
 
         var index = 0;
-        while (index < expectedCollection.Length)
+        foreach (var actualItem in actualCollection.Results)
         {
-            var expectedItem = expectedCollection[index];
-            var actualItem = actualCollection[index];
-
             Assert.NotNull(actualItem);
-            Assert.Equal(expectedItem.Identifier, actualItem.Identifier);
+            Assert.Equal(expectedCollection[index].Identifier, actualItem.Identifier);
             index++;
         }
     }
@@ -54,23 +51,42 @@ public class DeviceServiceTests
     [Fact]
     public async void GetDevices_GetMockDevices_DeviceCollectionEmpty()
     {
-        var pageInfo = new PageInfo();
+        var queryParameters = new QueryParameters();
         // Arrange
         var mockRepository = new Mock<IDeviceRepository>();
         mockRepository
-            .Setup(x => x.GetAsync(pageInfo, CancellationToken.None))
-            .Returns(Task.FromResult(Enumerable.Empty<IDeviceModel>()));
+            .Setup(x => x.GetAsync(queryParameters, CancellationToken.None))
+            .Returns(GetPagedResult(Enumerable.Empty<IDeviceModel>()));
 
         var controller = new DeviceController(mockRepository.Object);
 
         // Act
-        var actionResult = await controller.GetDevices(pageInfo).ConfigureAwait(false);
-        var actionValue = actionResult.GetResult<OkObjectResult, IEnumerable<Device>>();
+        var actionResult = await controller.GetDevices(queryParameters).ConfigureAwait(false);
+        var actionValue = actionResult.GetResult<OkObjectResult, PagedResult<Device>>();
 
         // Assert
         Assert.IsType<OkObjectResult>(actionResult?.Result);
         Assert.NotNull(actionValue);
-        Assert.True(actionValue.Count() == 0);
+        Assert.True(actionValue.TotalCount == 0);
+    }
+
+    private Task<PagedResult<IDeviceModel>> GetPagedResult(
+        IEnumerable<IDeviceModel> devices,
+        ushort page = 1,
+        ushort size = 1)
+    {
+        var deviceCollection = devices.ToArray();
+        var itemsCount = deviceCollection.Length;
+        var pageCount = (ushort)Math.Ceiling((double)itemsCount / size);
+        var pagedResult = new PagedResult<IDeviceModel>(deviceCollection)
+        {
+            CurrentPage = page,
+            PageSize = size,
+            TotalCount = itemsCount,
+            PageCount = pageCount
+        };
+
+        return Task.FromResult(pagedResult);
     }
 
     [Fact]
