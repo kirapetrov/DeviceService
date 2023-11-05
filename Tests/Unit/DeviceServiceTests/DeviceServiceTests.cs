@@ -4,7 +4,7 @@ using DeviceServiceTests.Mocks;
 using DeviceService.Controllers;
 using DeviceServiceTests.Helpers;
 using DeviceService.Models;
-using DeviceRepository.Common.Page;
+using DeviceService.Page;
 using DeviceRepository.Models.Interfaces;
 using DeviceRepository.Repositories.Interfaces;
 using DeviceRepository.Common;

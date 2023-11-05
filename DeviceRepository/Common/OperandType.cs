@@ -1,4 +1,4 @@
-namespace DeviceRepository.Common.Search;
+namespace DeviceRepository.Common;
 
 public enum OperandType
 {

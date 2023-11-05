@@ -1,11 +1,8 @@
+using Microsoft.EntityFrameworkCore;
 using DeviceRepository.Repositories.Interfaces;
 using DeviceRepository.Models.Interfaces;
 using DeviceRepository.Helpers;
-using Microsoft.EntityFrameworkCore;
 using DeviceRepository.Common;
-using DeviceRepository.Common.Page;
-using DeviceRepository.Common.Order;
-using DeviceRepository.Common.Search;
 
 namespace DeviceRepository.Repositories;
 
@@ -18,35 +15,30 @@ internal class DeviceRepository : IDeviceRepository
         this.dbContext = dbContext;
     }
 
-    public async Task<PagedResult<IDeviceModel>> GetAsync(
-        QueryParameters? queryParameters,
+    public async Task<QueryResult<IDeviceModel>> GetAsync(
+        string? orderProperty = null,
+        OrderType orderType = OrderType.Ascending,
+        ushort pageNumber = 0,
+        ushort pageSize = 0,
+        IReadOnlyCollection<SearchParameters>? searchParameters = null,
         CancellationToken cancellationToken = default)
     {
-        var orderInfo = queryParameters?.OrderInfo ?? new OrderInfo(nameof(IDeviceModel.Name));
         var deviceQuery = dbContext.Devices!
             .AsNoTracking()
-            .AppendOrder(orderInfo)
-            .AppendParameters(
-                queryParameters?.SearchParameters ?? Enumerable.Empty<SearchParameter>().ToArray());
+            .AppendOrder(orderProperty, orderType)
+            .AppendParameters(searchParameters);
 
         var devicesCount = await deviceQuery
             .CountAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var pageInfo = queryParameters?.PageInfo ?? new PageInfo();
         var devices = await deviceQuery
-            .AppendPage(pageInfo)
+            .AppendPage(pageNumber, pageSize)
             .Select(x => x.GetModel())
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
-
-        return new PagedResult<IDeviceModel>(devices)
-        {
-            CurrentPage = pageInfo.Page,
-            PageSize = pageInfo.Size,
-            TotalCount = devicesCount,
-            PageCount = (ushort)Math.Ceiling((double)devicesCount / pageInfo.Size)
-        };
+        
+        return new QueryResult<IDeviceModel>(devices, devicesCount);
     }
 
     public async Task<IDeviceModel?> GetAsync(long identifier, CancellationToken cancellationToken = default)

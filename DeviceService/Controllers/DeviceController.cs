@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using DeviceRepository.Repositories.Interfaces;
 using DeviceService.Models;
+using DeviceService.Page;
+using DeviceRepository.Repositories.Interfaces;
+using DeviceRepository.Models.Interfaces;
 using DeviceRepository.Common;
 
 namespace DeviceService.Controllers;
@@ -18,18 +20,34 @@ public class DeviceController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<PagedResult<Device>>> GetDevices(
-        QueryParameters? queryParameters)
-    {        
+        QueryParameters.QueryParameters? queryParameters)
+    {
+        var orderProperty = queryParameters?.OrderInfo?.Name ?? nameof(IDeviceModel.Name);
+        var orderType = queryParameters?.OrderInfo?.OrderType ?? OrderType.Ascending;
+        var pageNumber = queryParameters?.PageInfo?.Number ?? 1;
+        var pageSize = queryParameters?.PageInfo?.Size ?? 20;
+        var searchParameters = queryParameters?
+            .SearchParameters?
+            .Select(x => x.GetRepositorySearchParameters())
+            .OfType<SearchParameters>()
+            .ToArray();
+
         var result = await _deviceRepository
-            .GetAsync(queryParameters)
+            .GetAsync(
+                orderProperty,
+                orderType,
+                pageNumber,
+                pageSize,
+                searchParameters)
             .ConfigureAwait(false);
-        var deviceCollection = result.Results.Select(DeviceHelper.ToDevice).ToArray();
-        return Ok(new PagedResult<Device>(deviceCollection)
+
+        return Ok(new PagedResult<Device>()
         {
-            CurrentPage = result.CurrentPage,
-            PageSize = result.PageSize,
+            CurrentPage = pageNumber,
+            PageSize = pageSize,
             TotalCount = result.TotalCount,
-            PageCount = result.PageCount
+            PageCount = (ushort)Math.Ceiling((double)result.TotalCount / pageSize),
+            Collection = result.Collection.Select(DeviceHelper.ToDevice).ToArray()
         });
     }
 

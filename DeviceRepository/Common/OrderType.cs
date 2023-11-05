@@ -1,4 +1,4 @@
-namespace DeviceRepository.Common.Order;
+namespace DeviceRepository.Common;
 
 public enum OrderType {
     Ascending,

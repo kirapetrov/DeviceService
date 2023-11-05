@@ -1,33 +1,37 @@
 using System.Reflection;
-using DeviceRepository.Common.Order;
-using DeviceRepository.Common.Page;
-using DeviceRepository.Common.Search;
+using DeviceRepository.Common;
 using Microsoft.EntityFrameworkCore;
 
-namespace DeviceRepository.Common;
+namespace DeviceRepository.Helpers;
 
 public static class QueryHelper
 {
-    public static IQueryable<T> AppendOrder<T>(this IQueryable<T> query, OrderInfo orderInfo)
+    public static IQueryable<T> AppendOrder<T>(
+        this IQueryable<T> query,
+        string? propertyName,
+        OrderType orderType = OrderType.Ascending)
     {
-        if (string.IsNullOrWhiteSpace(orderInfo.Name) ||
-            !HasProperty<T>(orderInfo.Name))
+        if (!string.IsNullOrWhiteSpace(propertyName) &&
+            HasProperty<T>(propertyName))
         {
-            return query;
+            return orderType == OrderType.Descending
+                ? query.OrderByDescending(x => EF.Property<object>(x, propertyName))
+                : query.OrderBy(x => EF.Property<object>(x, propertyName));
         }
 
-        return orderInfo.OrderType == OrderType.Descending
-            ? query.OrderByDescending(x => EF.Property<object>(x, orderInfo.Name))
-            : query.OrderBy(x => EF.Property<object>(x, orderInfo.Name));
+        return query;        
     }
 
-    public static IQueryable<T> AppendPage<T>(this IQueryable<T> query, PageInfo pageInfo)
+    public static IQueryable<T> AppendPage<T>(
+        this IQueryable<T> query,
+        ushort number,
+        ushort size)
     {
-        if (pageInfo?.Page > 0 && pageInfo?.Size > 0)
+        if (number > 0 && size > 0)
         {
             return query
-                .Skip((pageInfo.Page - 1) * pageInfo.Size)
-                .Take(pageInfo.Size);
+                .Skip((number - 1) * size)
+                .Take(size);
         }
 
         return query;
@@ -35,8 +39,13 @@ public static class QueryHelper
 
     public static IQueryable<T> AppendParameters<T>(
         this IQueryable<T> query,
-        IReadOnlyCollection<SearchParameter> searchParameters)
+        IReadOnlyCollection<SearchParameters>? searchParameters)
     {
+        if(searchParameters?.Any() != true)
+        {
+            return query;
+        }
+
         foreach (var searchParameter in searchParameters)
         {
             query = query.AppendParameter(searchParameter);
@@ -47,7 +56,7 @@ public static class QueryHelper
 
     public static IQueryable<T> AppendParameter<T>(
         this IQueryable<T> query,
-        SearchParameter searchParameter)
+        SearchParameters searchParameter)
     {
         if (searchParameter is null)
         {
