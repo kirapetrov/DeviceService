@@ -6,38 +6,61 @@ namespace DeviceRepository.Helpers;
 
 internal static class DeviceModelsHelper
 {
-    public static Device? GetEntity(this IDeviceModel deviceModel)
+    public static Device? GetEntity(
+        this IModifyDeviceModel deviceModel,
+        long userId)
     {
-        if(deviceModel == null) {
+        if (deviceModel == null)
+        {
             return null;
         }
 
-        return GetEntity(
-            deviceModel.Name,
-            deviceModel.IpAddress,
-            deviceModel.Identifier);
-    }
-
-    public static Device GetEntity(
-        string? name,
-        string? ipAddress,
-        long identifier = 0)
-    {
         return new Device
         {
-            Id = identifier,
-            Name = name,
-            IpAddress = ipAddress
+            UserId = userId,
+            Name = deviceModel.Name,
+            IpAddress = deviceModel.IpAddress,
+            CreatedAt = DateTimeOffset.UtcNow
         };
+    }
+
+    public static IUserModel GetModel(this User user)
+    {
+        var userModel = new UserModel(user.Login)
+        {
+            Name = user.Name
+        };
+
+        userModel.AppendAdditionalInfo(user);
+        return userModel;
     }
 
     public static IDeviceModel GetModel(this Device device)
     {
-        return new DeviceModel
+        var deviceModel = new DeviceModel()
         {
-            Identifier = device.Id,
             Name = device.Name,
             IpAddress = device.IpAddress
         };
+
+        deviceModel.AppendAdditionalInfo(device);
+        return deviceModel;
+    }
+
+    private static void AppendAdditionalInfo(
+        this ModelWithAdditionalInfo additionalInfo,
+        RepositoryEntityWithAdditionalInfo repositoryAdditionlInfo)
+    {
+        additionalInfo.AppendRepositoryEntityInfo(repositoryAdditionlInfo);
+
+        additionalInfo.CreatedAt = repositoryAdditionlInfo.CreatedAt;
+        additionalInfo.UpdatedAt = repositoryAdditionlInfo.UpdatedAt;
+    }
+
+    private static void AppendRepositoryEntityInfo(
+        this ModelBase modelBase,
+        RepositoryEntity repositoryEntity)
+    {
+        modelBase.Identifier = repositoryEntity.Id;
     }
 }

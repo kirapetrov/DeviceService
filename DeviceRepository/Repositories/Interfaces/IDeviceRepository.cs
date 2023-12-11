@@ -15,11 +15,14 @@ public interface IDeviceRepository
 
     Task<IDeviceModel?> GetAsync(long identifier, CancellationToken cancellationToken = default);
 
-    Task<long> AddAsync(IDeviceModel deviceModel, CancellationToken cancellationToken = default);
+    Task<IDeviceModel?> AddAsync(
+        long userIdentifier,
+        IModifyDeviceModel modifyDeviceModel,
+        CancellationToken cancellationToken = default);
 
     Task<bool> UpdateAsync(
-        long identifier,
-        IDeviceModel deviceModel,
+        long deviceIdentifier,
+        IModifyDeviceModel modifyDeviceModel,
         CancellationToken cancellationToken = default);
         
     Task<bool> DeleteAsync(long identifier, CancellationToken cancellationToken = default);

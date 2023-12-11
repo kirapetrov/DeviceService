@@ -5,11 +5,10 @@ namespace DeviceService.Models;
 
 public static class DeviceHelper
 {
-    public static IDeviceModel ToModel(this Device device)
+    public static IModifyDeviceModel ToModel(this Device device)
     {
-        return new DeviceModel
+        return new ModifyDeviceModel
         {
-            Identifier = device.Identifier,
             Name = device.Name,
             IpAddress = device.IpAddress
         };
@@ -20,7 +19,9 @@ public static class DeviceHelper
         return new Device(
             deviceModel.Identifier,
             deviceModel.Name,
-            deviceModel.IpAddress
+            deviceModel.IpAddress,
+            deviceModel.CreatedAt,
+            deviceModel.UpdatedAt
         );
     }
 }

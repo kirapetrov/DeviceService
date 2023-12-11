@@ -53,12 +53,15 @@ internal class DeviceRepository : IDeviceRepository
         return device?.GetModel();
     }
 
-    public async Task<long> AddAsync(IDeviceModel deviceModel, CancellationToken cancellationToken = default)
+    public async Task<IDeviceModel?> AddAsync(
+        long userId,
+        IModifyDeviceModel modifyDeviceModel,
+        CancellationToken cancellationToken = default)
     {
-        var deviceEntity = deviceModel?.GetEntity();
+        var deviceEntity = modifyDeviceModel?.GetEntity(userId);
         if (deviceEntity is null)
         {
-            return -1;
+            return null;
         }
 
         var newDevice = await dbContext
@@ -67,15 +70,15 @@ internal class DeviceRepository : IDeviceRepository
             .ConfigureAwait(false);
 
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        return newDevice.Entity.Id;
+        return newDevice.Entity.GetModel();
     }
 
     public async Task<bool> UpdateAsync(
-        long identifier,
-        IDeviceModel deviceModel,
+        long deviceIdentifier,
+        IModifyDeviceModel modifyDeviceModel,
         CancellationToken cancellationToken = default)
     {
-        if (deviceModel is null)
+        if (modifyDeviceModel is null)
         {
             return false;
         }
@@ -84,7 +87,7 @@ internal class DeviceRepository : IDeviceRepository
             .Devices!
             .AsNoTracking()
             .FirstOrDefaultAsync(
-                x => x.Id == identifier,
+                x => x.Id == deviceIdentifier,
                 cancellationToken)
             .ConfigureAwait(false);
 
@@ -93,11 +96,13 @@ internal class DeviceRepository : IDeviceRepository
             return false;
         }
 
-        if (!string.IsNullOrWhiteSpace(deviceModel.Name))
-            device.Name = deviceModel.Name;
+        if (!string.IsNullOrWhiteSpace(modifyDeviceModel.Name))
+            device.Name = modifyDeviceModel.Name;
 
-        if (!string.IsNullOrWhiteSpace(deviceModel.IpAddress))
-            device.IpAddress = deviceModel.IpAddress;
+        if (!string.IsNullOrWhiteSpace(modifyDeviceModel.IpAddress))
+            device.IpAddress = modifyDeviceModel.IpAddress;
+
+        device.UpdatedAt = DateTimeOffset.UtcNow;
 
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return true;

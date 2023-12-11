@@ -64,18 +64,17 @@ public class DeviceController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Device>> PostDevice(Device device)
     {
-        //TODO need rework method
         var result = await _deviceRepository
-            .AddAsync(device.ToModel())
+            .AddAsync(
+                1, //TODO user identifier
+                device.ToModel())
             .ConfigureAwait(false);
 
-        var newDevice = new Device(
-            result,
-            device.Name,
-            device.IpAddress);
-
-        return result > 0
-            ? CreatedAtAction(nameof(GetDevice), new { identifier = result }, newDevice)
+        return result is not null
+            ? CreatedAtAction(
+                nameof(GetDevice), 
+                new { identifier = result.Identifier }, 
+                result.ToDevice())
             : BadRequest();
     }
 

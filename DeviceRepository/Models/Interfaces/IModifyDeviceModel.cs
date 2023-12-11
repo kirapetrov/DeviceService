@@ -1,6 +1,6 @@
 namespace DeviceRepository.Models.Interfaces;
 
-public interface IDeviceModel : IModelAdditionalInfo
+public interface IModifyDeviceModel
 {
     string? Name { get; }
     string? IpAddress { get; }

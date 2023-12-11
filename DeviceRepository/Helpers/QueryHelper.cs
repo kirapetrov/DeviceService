@@ -14,9 +14,11 @@ public static class QueryHelper
         if (!string.IsNullOrWhiteSpace(propertyName) &&
             HasProperty<T>(propertyName))
         {
+#pragma warning disable CS8604 // Possible null reference argument.
             return orderType == OrderType.Descending
                 ? query.OrderByDescending(x => EF.Property<object>(x, propertyName))
                 : query.OrderBy(x => EF.Property<object>(x, propertyName));
+#pragma warning restore CS8604 // Possible null reference argument.
         }
 
         return query;        
@@ -70,12 +72,16 @@ public static class QueryHelper
         {
             if (searchParameter.Operand == OperandType.Empty)
             {
+#pragma warning disable CS8604 // Possible null reference argument.
                 return query.Where(x => EF.Property<object>(x, propertyName) == null);
+#pragma warning restore CS8604 // Possible null reference argument.
             }
 
             if (searchParameter.Operand == OperandType.NotEmpty)
             {
+#pragma warning disable CS8604 // Possible null reference argument.
                 return query.Where(x => EF.Property<object>(x, propertyName) != null);
+#pragma warning restore CS8604 // Possible null reference argument.
             }
 
             if (searchParameter.Value is not null)
@@ -97,6 +103,7 @@ public static class QueryHelper
         OperandType operand)
     {
         var stringValue = (value?.ToString()) ?? throw new ArgumentException($"Parameter {nameof(value)} is null");
+#pragma warning disable CS8604 // Possible null reference argument.
         return operand switch
         {
             OperandType.Contains => query.Where(x => EF.Property<string>(x, propertyName).Contains(stringValue)),
@@ -106,6 +113,7 @@ public static class QueryHelper
             OperandType.NotEquals => query.Where(x => EF.Property<string>(x, propertyName) != stringValue),
             _ => throw new ArgumentException($"Unknown {nameof(OperandType)}")
         };
+#pragma warning restore CS8604 // Possible null reference argument.
     }
 
     private static bool HasProperty<T>(string propertyName) =>

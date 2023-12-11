@@ -12,5 +12,7 @@ internal class DeviceContext : DbContext
     {
     }
 
+    public virtual DbSet<User> Users { get; set; }
+
     public virtual DbSet<Device>? Devices { get; set; }
 }

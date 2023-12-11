@@ -1,6 +1,4 @@
-using DeviceRepository.Models.Interfaces;
-
-namespace DeviceRepository.Models;
+namespace DeviceRepository.Models.Interfaces;
 
 public abstract class ModelBase : IModelBase
 {
