@@ -17,4 +17,16 @@ internal class DeviceContext : DbContext
     public virtual DbSet<Device>? Devices { get; set; }
 
     public virtual DbSet<Tag>? Tags { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Device>()
+            .HasMany(x => x.Tags)
+            .WithMany(y => y.Devices)
+            .UsingEntity(
+                x => x.HasOne(typeof(Tag)).WithMany().OnDelete(DeleteBehavior.Restrict),
+                y => y.HasOne(typeof(Device)).WithMany().OnDelete(DeleteBehavior.Restrict));
+    }
 }

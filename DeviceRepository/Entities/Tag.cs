@@ -6,5 +6,5 @@ internal class Tag : RepositoryEntityWithAdditionalInfo
 
     public long UserId { get; set; }
     public User User { get; set; }
-    // public List<Device> Devices { get; } = [];
+    public List<Device> Devices { get; } = [];
 }
