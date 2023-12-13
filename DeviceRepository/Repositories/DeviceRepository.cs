@@ -34,7 +34,7 @@ internal class DeviceRepository : IDeviceRepository
 
         var devices = await deviceQuery
             .AppendPage(pageNumber, pageSize)
-            .Select(x => x.GetModel())
+            .Select(x => x.GetModel(true))
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
         
@@ -50,7 +50,7 @@ internal class DeviceRepository : IDeviceRepository
                 x => x.Id == identifier,
                 cancellationToken)
             .ConfigureAwait(false);
-        return device?.GetModel();
+        return device?.GetModel(true);
     }
 
     public async Task<IDeviceModel?> AddAsync(
@@ -70,7 +70,7 @@ internal class DeviceRepository : IDeviceRepository
             .ConfigureAwait(false);
 
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        return newDevice.Entity.GetModel();
+        return newDevice.Entity.GetModel(true);
     }
 
     public async Task<bool> UpdateAsync(

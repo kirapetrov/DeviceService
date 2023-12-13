@@ -35,16 +35,39 @@ internal static class DeviceModelsHelper
         return userModel;
     }
 
-    public static IDeviceModel GetModel(this Device device)
+    public static IDeviceModel GetModel(this Device device, bool withLinks = false)
     {
-        var deviceModel = new DeviceModel()
+        var deviceModel = new DeviceModel
         {
             Name = device.Name,
             IpAddress = device.IpAddress
         };
 
+        if (withLinks)
+        {
+            deviceModel.Tags =
+                device.Tags.Select(x => x.GetModel()).ToArray();
+        }
+
         deviceModel.AppendAdditionalInfo(device);
         return deviceModel;
+    }
+
+    public static ITagModel GetModel(this Tag tag, bool withLinks = false)
+    {
+        var tagModel = new TagModel
+        {
+            Name = tag.Name
+        };
+
+        if (withLinks)
+        {
+            tagModel.Devices =
+                tag.Devices.Select(x => x.GetModel()).ToArray();
+        }
+
+        tagModel.AppendAdditionalInfo(tag);
+        return tagModel;
     }
 
     private static void AppendAdditionalInfo(
