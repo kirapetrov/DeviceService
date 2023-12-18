@@ -1,12 +1,11 @@
 namespace DeviceService.Models;
 
-public record Device(
-    long Identifier,
+public record Tag(
+    long Identifier,    
     DateTimeOffset CreatedAt,
     DateTimeOffset? UpdatedAt,
     string? Name,
-    string? IpAddress,
-    IReadOnlyCollection<Tag> Tags
+    IReadOnlyCollection<Device> Devices
 ): ModelBase(
     Identifier,
     CreatedAt,

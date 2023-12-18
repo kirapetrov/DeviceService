@@ -47,7 +47,9 @@ public class DeviceController : ControllerBase
             PageSize = pageSize,
             TotalCount = result.TotalCount,
             PageCount = (ushort)Math.Ceiling((double)result.TotalCount / pageSize),
-            Collection = result.Collection.Select(DeviceHelper.ToDevice).ToArray()
+            Collection = result.Collection
+                .Select(x => x.ToDevice(true))
+                .ToArray()
         });
     }
 
@@ -72,8 +74,8 @@ public class DeviceController : ControllerBase
 
         return result is not null
             ? CreatedAtAction(
-                nameof(GetDevice), 
-                new { identifier = result.Identifier }, 
+                nameof(GetDevice),
+                new { identifier = result.Identifier },
                 result.ToDevice())
             : BadRequest();
     }

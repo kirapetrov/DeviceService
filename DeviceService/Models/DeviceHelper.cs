@@ -14,14 +14,38 @@ public static class DeviceHelper
         };
     }
 
-    public static Device ToDevice(this IDeviceModel deviceModel)
+    public static Device ToDevice(
+        this IDeviceModel deviceModel,
+        bool withLinks = false)
     {
+        var tags = withLinks
+            ? deviceModel.Tags.Select(x => x.ToTag()).ToArray()
+            : [];
+
         return new Device(
             deviceModel.Identifier,
+            deviceModel.CreatedAt,
+            deviceModel.UpdatedAt,
             deviceModel.Name,
             deviceModel.IpAddress,
-            deviceModel.CreatedAt,
-            deviceModel.UpdatedAt
+            tags
+        );
+    }
+
+    public static Tag ToTag(
+        this ITagModel tagModel,
+        bool withLinks = false)
+    {
+        var devices = withLinks
+            ? tagModel.Devices.Select(x => x.ToDevice()).ToArray()
+            : [];
+
+        return new Tag(
+            tagModel.Identifier,
+            tagModel.CreatedAt,
+            tagModel.UpdatedAt,
+            tagModel.Name,
+            devices
         );
     }
 }
