@@ -7,8 +7,8 @@ using DeviceService.Models;
 using DeviceService.Page;
 using DeviceRepository.Models.Interfaces;
 using DeviceRepository.Repositories.Interfaces;
-using DeviceRepository.Common;
 using DeviceService.QueryParameters;
+using DeviceRepository.Common;
 
 namespace DeviceServiceTests;
 
@@ -19,7 +19,8 @@ public class DeviceServiceTests
     {
         var expectedCollection = new IDeviceModel[] {
             new DeviceModelMock { Identifier = 1 },
-            new DeviceModelMock { Identifier = 2 }};
+            new DeviceModelMock { Identifier = 2 }
+        };
 
         // Arrange
         var mockRepository = GetDeviceRepositoryMock(expectedCollection);
@@ -67,12 +68,12 @@ public class DeviceServiceTests
         var mockRepository = new Mock<IDeviceRepository>();
         mockRepository
             .Setup(x => x.GetAsync(
-                null,
-                OrderType.Descending,
-                1,
-                10,
-                null,
-                CancellationToken.None))
+                It.IsAny<string?>(),
+                It.IsAny<OrderType>(),
+                It.IsAny<ushort>(),
+                It.IsAny<ushort>(),
+                It.IsAny<IReadOnlyCollection<DeviceRepository.Common.SearchParameters>?>(),
+                It.IsAny<CancellationToken>()))
             .Returns(taskStub);
 
         return mockRepository;
@@ -124,7 +125,7 @@ public class DeviceServiceTests
         // Arrange
         var mockRepository = new Mock<IDeviceRepository>();
         mockRepository
-            .Setup(x => x.AddAsync(0, It.IsAny<IModifyDeviceModel>(), CancellationToken.None))
+            .Setup(x => x.AddAsync(1, It.IsAny<IModifyDeviceModel>(), CancellationToken.None))
             .Returns(Task.FromResult<IDeviceModel?>(expected));
         var controller = new DeviceController(mockRepository.Object);
 
@@ -195,7 +196,7 @@ public class DeviceServiceTests
     private static Device GetEmptyDevice()
     {
         return new Device(
-            0,
+            1,
             DateTimeOffset.UtcNow,
             null,
             null,
