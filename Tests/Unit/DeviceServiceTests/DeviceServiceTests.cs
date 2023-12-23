@@ -8,6 +8,7 @@ using DeviceService.Page;
 using DeviceRepository.Models.Interfaces;
 using DeviceRepository.Repositories.Interfaces;
 using DeviceRepository.Common;
+using DeviceService.QueryParameters;
 
 namespace DeviceServiceTests;
 
@@ -16,31 +17,25 @@ public class DeviceServiceTests
     [Fact]
     public async void GetDevices_GetMockDevices_DeviceCollectionsSame()
     {
-        var queryParameters = new QueryParameters();
-        var expectedCollection = new[] {
+        var expectedCollection = new IDeviceModel[] {
             new DeviceModelMock { Identifier = 1 },
             new DeviceModelMock { Identifier = 2 }};
 
         // Arrange
-        var mockRepository = new Mock<IDeviceRepository>();
-        mockRepository
-            .Setup(x => x.GetAsync(queryParameters, CancellationToken.None))
-            .Returns(GetPagedResult(expectedCollection, 1, 1));
-
+        var mockRepository = GetDeviceRepositoryMock(expectedCollection);
         var controller = new DeviceController(mockRepository.Object);
 
         // Act
-        var actionResult = await controller.GetDevices(queryParameters).ConfigureAwait(false);
-        var actualCollection = actionResult
-            .GetResult<OkObjectResult, PagedResult<Device>>();
+        var actionResult = await controller.GetDevices(new QueryParameters());
+        var actualCollection = actionResult.GetResult<OkObjectResult, PagedResult<Device>>();
 
         // Assert
         Assert.IsType<OkObjectResult>(actionResult?.Result);
-        Assert.NotNull(actualCollection);
+        Assert.NotNull(actualCollection?.Collection);
         Assert.Equal(expectedCollection.Length, actualCollection.TotalCount);
 
         var index = 0;
-        foreach (var actualItem in actualCollection.Results)
+        foreach (var actualItem in actualCollection.Collection)
         {
             Assert.NotNull(actualItem);
             Assert.Equal(expectedCollection[index].Identifier, actualItem.Identifier);
@@ -51,17 +46,12 @@ public class DeviceServiceTests
     [Fact]
     public async void GetDevices_GetMockDevices_DeviceCollectionEmpty()
     {
-        var queryParameters = new QueryParameters();
         // Arrange
-        var mockRepository = new Mock<IDeviceRepository>();
-        mockRepository
-            .Setup(x => x.GetAsync(queryParameters, CancellationToken.None))
-            .Returns(GetPagedResult(Enumerable.Empty<IDeviceModel>()));
-
+        var mockRepository = GetDeviceRepositoryMock([]);
         var controller = new DeviceController(mockRepository.Object);
 
         // Act
-        var actionResult = await controller.GetDevices(queryParameters).ConfigureAwait(false);
+        var actionResult = await controller.GetDevices(new QueryParameters());
         var actionValue = actionResult.GetResult<OkObjectResult, PagedResult<Device>>();
 
         // Assert
@@ -70,30 +60,29 @@ public class DeviceServiceTests
         Assert.True(actionValue.TotalCount == 0);
     }
 
-    private Task<PagedResult<IDeviceModel>> GetPagedResult(
-        IEnumerable<IDeviceModel> devices,
-        ushort page = 1,
-        ushort size = 1)
+    private static Mock<IDeviceRepository> GetDeviceRepositoryMock(
+        IDeviceModel[] devices)
     {
-        var deviceCollection = devices.ToArray();
-        var itemsCount = deviceCollection.Length;
-        var pageCount = (ushort)Math.Ceiling((double)itemsCount / size);
-        var pagedResult = new PagedResult<IDeviceModel>(deviceCollection)
-        {
-            CurrentPage = page,
-            PageSize = size,
-            TotalCount = itemsCount,
-            PageCount = pageCount
-        };
+        var taskStub = Task.FromResult(new QueryResult<IDeviceModel>(devices, devices.Length));
+        var mockRepository = new Mock<IDeviceRepository>();
+        mockRepository
+            .Setup(x => x.GetAsync(
+                null,
+                OrderType.Descending,
+                1,
+                10,
+                null,
+                CancellationToken.None))
+            .Returns(taskStub);
 
-        return Task.FromResult(pagedResult);
+        return mockRepository;
     }
 
     [Fact]
     public async void GetDevice_GetMockDeviceById_DevicesSame()
     {
         const long expectedIdentifier = 1;
-        DeviceModelMock expectedDevice = new DeviceModelMock { Identifier = expectedIdentifier };
+        var expectedDevice = new DeviceModelMock { Identifier = expectedIdentifier };
 
         // Arrange
         var mockRepository = new Mock<IDeviceRepository>();
@@ -104,9 +93,7 @@ public class DeviceServiceTests
         var controller = new DeviceController(mockRepository.Object);
 
         // Act
-        var actionResult = await controller
-            .GetDevice(expectedIdentifier)
-            .ConfigureAwait(false);
+        var actionResult = await controller.GetDevice(expectedIdentifier);
         var actionValue = actionResult.GetResult<OkObjectResult, Device>();
 
         // Assert
@@ -123,9 +110,7 @@ public class DeviceServiceTests
         var controller = new DeviceController(mockRepository.Object);
 
         // Act
-        var actionResult = await controller
-            .GetDevice(1)
-            .ConfigureAwait(false);
+        var actionResult = await controller.GetDevice(1);
 
         // Assert
         Assert.IsType<NotFoundResult>(actionResult.Result);
@@ -134,25 +119,23 @@ public class DeviceServiceTests
     [Fact]
     public async void PostDevice_AddNewDevice_DeviceAdded()
     {
-        const long expectedIdentifier = 1;
+        var expected = new DeviceModelMock { Identifier = 1 };
 
         // Arrange
         var mockRepository = new Mock<IDeviceRepository>();
         mockRepository
-            .Setup(x => x.AddAsync(It.IsAny<IDeviceModel>(), CancellationToken.None))
-            .Returns(Task.FromResult(expectedIdentifier));
+            .Setup(x => x.AddAsync(0, It.IsAny<IModifyDeviceModel>(), CancellationToken.None))
+            .Returns(Task.FromResult<IDeviceModel?>(expected));
         var controller = new DeviceController(mockRepository.Object);
 
         // Act
-        var actionResult = await controller
-            .PostDevice(new Device(0, null, null))
-            .ConfigureAwait(false);
+        var actionResult = await controller.PostDevice(GetEmptyDevice());
         var actionValue = actionResult.GetResult<CreatedAtActionResult, Device>();
 
         // Assert
         Assert.IsType<CreatedAtActionResult>(actionResult.Result);
         Assert.NotNull(actionValue);
-        Assert.Equal(expectedIdentifier, actionValue.Identifier);
+        Assert.Equal(expected.Identifier, actionValue.Identifier);
     }
 
     [Fact]
@@ -163,9 +146,7 @@ public class DeviceServiceTests
         var controller = new DeviceController(mockRepository.Object);
 
         // Act
-        var actionResult = await controller
-            .PostDevice(new Device(0, null, null))
-            .ConfigureAwait(false);
+        var actionResult = await controller.PostDevice(GetEmptyDevice());
 
         // Assert
         Assert.IsType<BadRequestResult>(actionResult.Result);
@@ -185,8 +166,7 @@ public class DeviceServiceTests
 
         // Act
         var actionResult = await controller
-            .DeleteDevice(expectedIdentifier)
-            .ConfigureAwait(false);
+            .DeleteDevice(expectedIdentifier);
 
         // Assert
         Assert.IsType<NoContentResult>(actionResult);
@@ -206,10 +186,21 @@ public class DeviceServiceTests
 
         // Act
         var actionResult = await controller
-            .DeleteDevice(expectedIdentifier)
-            .ConfigureAwait(false);
+            .DeleteDevice(expectedIdentifier);
 
         // Assert
         Assert.IsType<BadRequestResult>(actionResult);
+    }
+
+    private static Device GetEmptyDevice()
+    {
+        return new Device(
+            0,
+            DateTimeOffset.UtcNow,
+            null,
+            null,
+            null,
+            Array.Empty<Tag>()
+        );
     }
 }
