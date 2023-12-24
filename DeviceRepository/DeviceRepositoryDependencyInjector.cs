@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using DeviceRepository.Repositories;
-using DeviceRepository.Repositories.Interfaces;
 
 using System.Runtime.CompilerServices;
+using DeviceRepository.DataAccess;
+using DeviceRepository.Devices.Interfaces;
 
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
@@ -16,6 +16,6 @@ public static class DeviceRepositoryDependencyInjector
     {
         services.AddDbContext<DeviceContext>(options => 
             options.UseSqlServer(configuration.GetConnectionString("DevicesConnectionString")));
-        services.AddScoped<IDeviceRepository, Repositories.DeviceRepository>();
+        services.AddScoped<IDeviceRepository, Devices.DeviceRepository>();
     }
 }

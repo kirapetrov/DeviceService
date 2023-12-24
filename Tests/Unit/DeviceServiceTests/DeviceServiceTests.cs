@@ -1,14 +1,14 @@
 using Moq;
 using Microsoft.AspNetCore.Mvc;
 using DeviceServiceTests.Mocks;
-using DeviceService.Controllers;
 using DeviceServiceTests.Helpers;
-using DeviceService.Models;
-using DeviceService.Page;
-using DeviceRepository.Models.Interfaces;
-using DeviceRepository.Repositories.Interfaces;
-using DeviceService.QueryParameters;
 using DeviceRepository.Common;
+using DeviceService.Devices;
+using DeviceRepository.Devices.Interfaces;
+using DeviceService.Common.QueryParameters;
+using DeviceService.Common.Page;
+using DeviceRepository.Common.Search;
+using DeviceService.Tags;
 
 namespace DeviceServiceTests;
 
@@ -72,7 +72,7 @@ public class DeviceServiceTests
                 It.IsAny<OrderType>(),
                 It.IsAny<ushort>(),
                 It.IsAny<ushort>(),
-                It.IsAny<IReadOnlyCollection<DeviceRepository.Common.SearchParameters>?>(),
+                It.IsAny<IReadOnlyCollection<DeviceRepository.Common.Search.SearchParameters>?>(),
                 It.IsAny<CancellationToken>()))
             .Returns(taskStub);
 

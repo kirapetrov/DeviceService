@@ -1,5 +1,5 @@
 using System.Reflection;
-using DeviceRepository.Common;
+using DeviceRepository.Common.Search;
 using Microsoft.EntityFrameworkCore;
 
 namespace DeviceRepository.Helpers;
